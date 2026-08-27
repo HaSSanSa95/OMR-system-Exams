@@ -168,7 +168,7 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
     answers = {}
     for question_num in range(1, 101):
         q_str = str(question_num)
-        options = ["A", "B", "C", "D"]
+        options = ["أ", "ب", "ج", "د"]
         option_means = {}
 
         if q_str not in coords_by_question:
