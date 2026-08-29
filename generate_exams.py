@@ -12,7 +12,6 @@ MARGIN = 70
 OPTION_LETTERS = ['أ', 'ب', 'ج', 'د']
 
 def to_hindi_digits(number):
-    """تحويل الأرقام الإنجليزية (0-9) إلى أرقام هندية/شرقية (٠-٩)"""
     arabic_digits = "0123456789"
     hindi_digits = "٠١٢٣٤٥٦٧٨٩"
     trans_table = str.maketrans(arabic_digits, hindi_digits)
@@ -111,7 +110,6 @@ def create_exam_pages(exam_info, user_data, f_l, f_m, f_s):
         q_obj = q_item.get('question', q_item)
         raw_q_text = q_obj.get('question_text', {}).get('text', '') if isinstance(q_obj.get('question_text'), dict) else str(q_obj.get('question_text', ''))
         
-        # تحويل الرقم التسلسلي للسؤال إلى الأرقام الهندية
         hindi_idx = to_hindi_digits(idx)
         full_q_text = f"س{hindi_idx}: {raw_q_text}"
         wrapped_q = wrap_text(full_q_text, f_s, available_width, draw)
@@ -159,7 +157,7 @@ def create_exam_pages(exam_info, user_data, f_l, f_m, f_s):
     pages.append(img)
     return pages
 
-def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s):
+def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, logo_path=None):
     img = Image.new('RGB', (WIDTH, HEIGHT), 'white')
     draw = ImageDraw.Draw(img)
     master_coords = []
@@ -168,6 +166,15 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s):
     for x, y in marks:
         draw.rectangle([x, y, x + 40, y + 40], fill="black")
         
+    # رسم الشعار
+    if logo_path and os.path.exists(logo_path):
+        try:
+            logo_img = Image.open(logo_path).convert("RGBA")
+            logo_img.thumbnail((120, 120)) 
+            img.paste(logo_img, (MARGIN + 20, MARGIN + 10), logo_img)
+        except Exception as e:
+            print(f"لم يتمكن من رسم الشعار: {e}")
+
     title = fix_arabic_text("ورقة الإجابة الامتحانية (Bubble Sheet)")
     tw, th = get_text_metrics(draw, title, font_l)
     draw.text((620 - int(tw) // 2, 60), title, fill="black", font=font_l)
@@ -201,12 +208,50 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s):
         qr_img = Image.open(qr_path).convert("RGB").resize((230, 230))
         img.paste(qr_img, (335 - 115, 195))
 
-    start_y = 490 
+    # --- الملاحظة والأمثلة جنباً إلى جنب على نفس السطر ---
+    note_y = 485
+    note_txt = fix_arabic_text("يرجى تظليل الدائرة بشكل كامل مع الاهتمام بعدم خروج التظليلي عن الدائرة وكما في الامثلة :")
+    tw_n, th_n = get_text_metrics(draw, note_txt, font_m)
+    draw.text((1150, note_y), note_txt, fill="black", font=font_m, anchor="rm")
+
+    ex_center_y = note_y - 2
+    ex_x = 1150 - tw_n - 35 
+    r = 12
+
+    def draw_check(cx, cy):
+        draw.line([(cx-5, cy), (cx-1, cy+5), (cx+7, cy-6)], fill="green", width=3)
+        
+    def draw_cross(cx, cy):
+        draw.line([(cx-5, cy-5), (cx+5, cy+5)], fill="red", width=3)
+        draw.line([(cx+5, cy-5), (cx-5, cy+5)], fill="red", width=3)
+
+    # 1. صح - تظليل كامل
+    draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], fill="black", outline="black")
+    draw_check(ex_x - r*2 - 15, ex_center_y)
+    ex_x -= (r*2 + 55)
+
+    # 2. خطأ - تظليل جزئي
+    draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], outline="black", width=2)
+    draw.chord([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], 0, 180, fill="black")
+    draw_cross(ex_x - r*2 - 15, ex_center_y)
+    ex_x -= (r*2 + 55)
+
+    # 3. خطأ - علامة X داخل الدائرة
+    draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], outline="black", width=2)
+    cx, cy = ex_x - r, ex_center_y
+    draw.line([cx-5, cy-5, cx+5, cy+5], fill="black", width=2)
+    draw.line([cx+5, cy-5, cx-5, cy+5], fill="black", width=2)
+    draw_cross(ex_x - r*2 - 15, ex_center_y)
+    ex_x -= (r*2 + 55)
+
+    # ---------------------------------------------
+
+    start_y = 530 
     col_width = 265     
-    row_height = 45     
-    q_bubble_radius = 13 
+    row_height = 43 
     options = ['أ', 'ب', 'ج', 'د']
     right_margin_start = WIDTH - MARGIN
+    q_bubble_radius = 13
     
     for i in range(100):
         col = i // 25
@@ -215,7 +260,6 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s):
         col_right_x = right_margin_start - (col * col_width)
         q_y = start_y + (row * row_height)
         
-        # تحويل رقم السؤال التسلسلي في الـ Bubble Sheet إلى الأرقام الهندية
         hindi_q_num = to_hindi_digits(i + 1)
         q_num_str = fix_arabic_text(f"({hindi_q_num})")
 
@@ -233,14 +277,14 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s):
             draw.text((bx + q_bubble_radius, by + q_bubble_radius), opt_txt, fill="black", font=font_s, anchor="mm")
             
             master_coords.append({
-                "q": i + 1,  # يُحتفظ بقيمة int الأصلية لقاعدة البيانات ومعالجة OMR البرمجية
+                "q": i + 1,  
                 "opt": opt,
                 "bbox": [int(bx), int(by), int(bx + q_bubble_radius*2), int(by + q_bubble_radius*2)]
             })
             
     return [img], master_coords
 
-def generate_all(target_dir='exam_sheets_pdf_output', Jsonpath=None):
+def generate_all(target_dir='exam_sheets_pdf_output', Jsonpath=None, logo_path='logo.png'):
     if not os.path.exists(target_dir): 
         os.makedirs(target_dir)
     
@@ -310,7 +354,7 @@ def generate_all(target_dir='exam_sheets_pdf_output', Jsonpath=None):
             generate_qrcode(qr_payload, qr_p)
             temp_qrs.append(qr_p)
             
-            bubble_pages, current_coords = create_bubble_sheet_and_map(info, user_p, qr_p, f_l, f_m, f_xs)
+            bubble_pages, current_coords = create_bubble_sheet_and_map(info, user_p, qr_p, f_l, f_m, f_xs, logo_path=logo_path)
             all_final_pages.extend(bubble_pages) 
             
             exam_pages = create_exam_pages(info, user_p, f_l, f_m, f_s)
