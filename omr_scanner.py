@@ -60,7 +60,7 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
     """
     معالجة ورقة الإجابة لاستخراج الإجابات، رقم الطالب، ونموذج الأسئلة بناءً على ملف الـ JSON.
     """
-    # 1. تحميل الصورة وتغيير مقاسها للمقاس الموحد
+
     image = cv2.imread(image_path)
     if image is None:
         return {"status": "error", "message": "Could not open or find the image"}
@@ -69,24 +69,22 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
     gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
     output_image = img_resized.copy()
 
-    # 2. قراءة ملف الـ JSON
     if not os.path.exists(json_path):
         return {"status": "error", "message": f"JSON path not found: {json_path}"}
         
     with open(json_path, 'r', encoding='utf-8') as f:
         master_coords = json.load(f)
 
-    # 3. فرز وتوزيع الإحداثيات (الإجابات، رقم الطالب، النموذج)
-    coords_by_question = {}    # للأسئلة من 1 إلى 100
-    coords_by_student_id = {}  # لأعمدة رقم الطالب (مثلاً: خانة الآحاد، العشرات، المئات...)
-    coords_by_model = {}       # لخيارات نموذج الأسئلة (A, B, C, D أو 1, 2, 3)
+    coords_by_question = {}    
+    coords_by_student_id = {}  
+    coords_by_model = {}       
 
     for entry in master_coords:
         key = str(entry['q'])
         opt = str(entry['opt'])
         bbox = entry['bbox']
         
-        # تصنيف البيانات بناءً على المسمى الموجود في حقل 'q' داخل الـ JSON
+   
         if "student" in key.lower() or "id" in key.lower():
             if key not in coords_by_student_id:
                 coords_by_student_id[key] = {}
@@ -96,16 +94,12 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
                 coords_by_model[key] = {}
             coords_by_model[key][opt] = bbox
         else:
-            # الأسئلة العادية
+           
             if key not in coords_by_question:
                 coords_by_question[key] = {}
             coords_by_question[key][opt] = bbox
 
-    # ---------------------------------------------------------
-    # أولاً: قراءة رقم الطالب الامتحانى (Student ID) من الدوائر المظلتة
-    # ---------------------------------------------------------
     student_id_digits = {}
-    # نرتب الخانات (الآحاد، العشرات...) بناءً على أسمائها لضمان الترتيب الصحيح للرقم
     for field_name in sorted(coords_by_student_id.keys()):
         option_means = {}
         for digit_val, bbox in coords_by_student_id[field_name].items():
@@ -125,20 +119,15 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
             
             if (average_of_others - darkest_value) > sensitivity:
                 student_id_digits[field_name] = darkest_digit
-                # كتابة الرقم فوق المربع
                 x1_t, y1_t, _, _ = coords_by_student_id[field_name][darkest_digit]
                 cv2.putText(output_image, darkest_digit, (x1_t, y1_t - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
-    # تجميع الأرقام لتكوين الرقم الامتحاني الكامل
     detected_student_id = "".join([student_id_digits[k] for k in sorted(student_id_digits.keys())])
     if not detected_student_id:
-        # إذا لم تكن إحداثيات الدوائر متوفرة أو لم تُقرأ، نحاول استخدام الـ QR كخيار احتياطي
+       
         qr_val = decode_qr(img_resized)
         detected_student_id = qr_val if qr_val else "null"
 
-    # ---------------------------------------------------------
-    # ثانياً: قراءة نموذج الأسئلة (Exam Model / Form)
-    # ---------------------------------------------------------
     detected_model = "null"
     for field_name in coords_by_model.keys():
         option_means = {}
@@ -162,9 +151,6 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
                 x1_t, y1_t, _, _ = coords_by_model[field_name][darkest_model]
                 cv2.putText(output_image, darkest_model, (x1_t, y1_t - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 165, 255), 2)
 
-    # ---------------------------------------------------------
-    # ثالثاً: قراءة إجابات الـ 100 سؤال (نفس المنطق الناجح المستقر)
-    # ---------------------------------------------------------
     answers = {}
     for question_num in range(1, 101):
         q_str = str(question_num)
@@ -200,11 +186,7 @@ def process_omr_smart(image_path, json_path, sensitivity=12):
                 cv2.putText(output_image, selected_option, (x1_text, y1_text - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
 
         answers[q_str] = selected_option
-
-    # حفظ صورة المعاينة النهائية الملونة بالكامل
     cv2.imwrite("processed_sheet.png", output_image)
-    
-    # 4. بناء النتيجة النهائية الشاملة
     return {
         "status": "processed",
         "student_id": detected_student_id,

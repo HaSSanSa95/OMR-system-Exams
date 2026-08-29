@@ -208,7 +208,7 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, log
         qr_img = Image.open(qr_path).convert("RGB").resize((230, 230))
         img.paste(qr_img, (335 - 115, 195))
 
-    # --- الملاحظة والأمثلة جنباً إلى جنب على نفس السطر ---
+
     note_y = 485
     note_txt = fix_arabic_text("يرجى تظليل الدائرة بشكل كامل مع الاهتمام بعدم خروج التظليلي عن الدائرة وكما في الامثلة :")
     tw_n, th_n = get_text_metrics(draw, note_txt, font_m)
@@ -225,18 +225,17 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, log
         draw.line([(cx-5, cy-5), (cx+5, cy+5)], fill="red", width=3)
         draw.line([(cx+5, cy-5), (cx-5, cy+5)], fill="red", width=3)
 
-    # 1. صح - تظليل كامل
+
     draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], fill="black", outline="black")
     draw_check(ex_x - r*2 - 15, ex_center_y)
     ex_x -= (r*2 + 55)
 
-    # 2. خطأ - تظليل جزئي
+
     draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], outline="black", width=2)
     draw.chord([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], 0, 180, fill="black")
     draw_cross(ex_x - r*2 - 15, ex_center_y)
     ex_x -= (r*2 + 55)
 
-    # 3. خطأ - علامة X داخل الدائرة
     draw.ellipse([ex_x - r*2, ex_center_y - r, ex_x, ex_center_y + r], outline="black", width=2)
     cx, cy = ex_x - r, ex_center_y
     draw.line([cx-5, cy-5, cx+5, cy+5], fill="black", width=2)

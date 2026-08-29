@@ -23,7 +23,6 @@ def cleanup_path(path: str):
 
 @app.post("/generate-exams")
 async def api_generate_exams(payload: dict): 
-    # 1. الاستخراج الذكي للبيانات (في حال كانت مغلفة بـ "data" من Postman)
     actual_data = payload
     if "data_level" not in payload and "data_exams" not in payload:
         if "data" in payload and isinstance(payload["data"], dict):
@@ -31,7 +30,6 @@ async def api_generate_exams(payload: dict):
         elif "data" in payload and isinstance(payload["data"], list) and len(payload["data"]) > 0:
             actual_data = payload["data"][0]
 
-    # 2. التحويل الذكي للصيغة المتوافقة
     if "data_level" in actual_data and "data_exams" in actual_data:
         exam_info_data = actual_data["data_level"].get("exam_info", {})
         start_time = exam_info_data.get("start_time", "2026-06-18T10:00:00.000000Z")
@@ -103,7 +101,6 @@ async def api_generate_exams(payload: dict):
     elif "users" in actual_data:
         data_to_process = actual_data
     else:
-        # رسالة خطأ واضحة في حال كان الجيسون مرسلاً بشكل خاطئ تماماً
         raise HTTPException(status_code=400, detail="Invalid JSON format: Could not find 'data_level' and 'data_exams', nor 'users'. Please check Postman payload.")
 
     request_id = str(uuid.uuid4())[:8]
