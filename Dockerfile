@@ -2,8 +2,7 @@ FROM python:3.10-slim
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
-# استخدام الفاصلة المنقوطة (;) يمنع مشكلة الترميز &amp;&amp; نهائياً
-RUN apt-get update ; apt-get install -y \
+RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -11,10 +10,11 @@ RUN apt-get update ; apt-get install -y \
     libxrender-dev \
     libgomp1 \
     libzbar0 \
+    libzbar-dev \
     fonts-amiri \
     libfribidi-dev \
     libharfbuzz-dev \
-    ; rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
