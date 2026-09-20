@@ -5,5 +5,5 @@ numpy==1.26.2
 pyzbar==0.1.9
 Pillow==10.1.0
 qrcode==7.4.2
-arabic-reshaper==3.0.0
-python-bidi==0.4.2
+arabic-reshaper
+python-bidi
