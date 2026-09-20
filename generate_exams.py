@@ -67,10 +67,10 @@ def generate_qrcode(data_dict, path):
 
 def draw_header(img, draw, exam_info, user_data, qr_p, f_l, f_m, cursor_y):
     marker_size = 40
-    draw.rectangle([MARGIN, MARGIN, MARGIN + marker_size, MARGIN + marker_size], fill='black')
-    draw.rectangle([WIDTH - MARGIN - marker_size, MARGIN, WIDTH - MARGIN, MARGIN + marker_size], fill='black')
-    draw.rectangle([MARGIN, HEIGHT - MARGIN - marker_size, MARGIN + marker_size, HEIGHT - MARGIN], fill='black')
-    draw.rectangle([WIDTH - MARGIN - marker_size, HEIGHT - MARGIN - marker_size, WIDTH - MARGIN, HEIGHT - MARGIN], fill='black')
+    draw.rectangle([MARGIN, MARGIN, MARGIN + marker_size, MARGIN + marker_size], fill='white')
+    draw.rectangle([WIDTH - MARGIN - marker_size, MARGIN, WIDTH - MARGIN, MARGIN + marker_size], fill='white')
+    draw.rectangle([MARGIN, HEIGHT - MARGIN - marker_size, MARGIN + marker_size, HEIGHT - MARGIN], fill='white')
+    draw.rectangle([WIDTH - MARGIN - marker_size, HEIGHT - MARGIN - marker_size, WIDTH - MARGIN, HEIGHT - MARGIN], fill='white')
 
     if qr_p and os.path.exists(qr_p):
         qr_i = Image.open(qr_p).convert("RGBA").resize((130, 130))
@@ -164,7 +164,7 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, log
     
     marks = [(50, 50), (1150, 50), (50, 1664), (1150, 1664)]
     for x, y in marks:
-        draw.rectangle([x, y, x + 40, y + 40], fill="white")
+        draw.rectangle([x, y, x + 40, y + 40], fill="black")
         
     # رسم الشعار
     #if logo_path and os.path.exists(logo_path):
