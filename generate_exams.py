@@ -167,13 +167,13 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, log
         draw.rectangle([x, y, x + 40, y + 40], fill="black")
         
     # رسم الشعار
-    if logo_path and os.path.exists(logo_path):
-        try:
-            logo_img = Image.open(logo_path).convert("RGBA")
-            logo_img.thumbnail((120, 120)) 
-            img.paste(logo_img, (MARGIN + 20, MARGIN + 10), logo_img)
-        except Exception as e:
-            print(f"لم يتمكن من رسم الشعار: {e}")
+    #if logo_path and os.path.exists(logo_path):
+       # try:
+           # logo_img = Image.open(logo_path).convert("RGBA")
+           # logo_img.thumbnail((120, 120)) 
+           # img.paste(logo_img, (MARGIN + 20, MARGIN + 10), logo_img)
+       # except Exception as e:
+         #   print(f"لم يتمكن من رسم الشعار: {e}")
 
     title = fix_arabic_text("ورقة الإجابة الامتحانية (Bubble Sheet)")
     tw, th = get_text_metrics(draw, title, font_l)
