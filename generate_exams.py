@@ -164,7 +164,7 @@ def create_bubble_sheet_and_map(info, user, qr_path, font_l, font_m, font_s, log
     
     marks = [(50, 50), (1150, 50), (50, 1664), (1150, 1664)]
     for x, y in marks:
-        draw.rectangle([x, y, x + 40, y + 40], fill="black")
+        draw.rectangle([x, y, x + 40, y + 40], fill="white")
         
     # رسم الشعار
     #if logo_path and os.path.exists(logo_path):
