@@ -2,8 +2,8 @@ FROM python:3.10-slim
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
-# إغلاق الأخطاء وتحديث المرايا بحماية من انقطاع الشبكة
-RUN apt-get clean && apt-get update --fix-missing && apt-get install -y --no-install-recommends \
+# استخدام الفاصلة المنقوطة (;) يمنع تحويل & إلى &amp; نهائياً
+RUN apt-get clean ; apt-get update --fix-missing ; apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -15,7 +15,7 @@ RUN apt-get clean && apt-get update --fix-missing && apt-get install -y --no-ins
     fonts-amiri \
     libfribidi-dev \
     libharfbuzz-dev \
-    && rm -rf /var/lib/apt/lists/*
+    ; rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
