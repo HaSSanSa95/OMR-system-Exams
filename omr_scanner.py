@@ -2,14 +2,12 @@ import cv2
 import numpy as np
 import json
 import os
-from pyzbar.pyzbar import decode
+
 
 def decode_qr(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    decoded_objects = decode(gray)
-    for obj in decoded_objects:
-        return obj.data.decode('utf-8')
-    return None
+    detector = cv2.QRCodeDetector()
+    data, bbox, _ = detector.detectAndDecode(image)
+    return data if data else None
 
 def get_filled_ratio(roi):
     if roi.size == 0: return 0
